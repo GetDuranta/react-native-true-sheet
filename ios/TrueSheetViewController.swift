@@ -20,8 +20,6 @@ protocol TrueSheetViewControllerDelegate: AnyObject {
   func viewControllerDidDismiss()
   func viewControllerDidChangeSize(_ sizeInfo: SizeInfo?)
   func viewControllerWillAppear()
-  func viewControllerKeyboardWillShow(_ keyboardHeight: CGFloat)
-  func viewControllerKeyboardWillHide()
   func viewControllerDidDrag(_ state: UIPanGestureRecognizer.State, _ height: CGFloat)
 }
 
@@ -44,6 +42,7 @@ class TrueSheetViewController: UIViewController, UISheetPresentationControllerDe
 
   var maxHeight: CGFloat?
   var contentHeight: CGFloat = 0
+  var headerHeight: CGFloat = 0
   var footerHeight: CGFloat = 0
 
   var backgroundColor: UIColor?
@@ -99,18 +98,6 @@ class TrueSheetViewController: UIViewController, UISheetPresentationControllerDe
 
   override func viewDidLoad() {
     super.viewDidLoad()
-
-    NotificationCenter.default.addObserver(
-      self, selector: #selector(keyboardWillShow(_:)),
-      name: UIResponder.keyboardWillShowNotification,
-      object: nil
-    )
-
-    NotificationCenter.default.addObserver(
-      self, selector: #selector(keyboardWillHide(_:)),
-      name: UIResponder.keyboardWillHideNotification,
-      object: nil
-    )
   }
 
   @objc
@@ -123,20 +110,6 @@ class TrueSheetViewController: UIViewController, UISheetPresentationControllerDe
     let height = screenHeight - bottomInset - sheetY
 
     delegate?.viewControllerDidDrag(gesture.state, height)
-  }
-
-  @objc
-  private func keyboardWillShow(_ notification: Notification) {
-    guard let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else {
-      return
-    }
-
-    delegate?.viewControllerKeyboardWillShow(keyboardSize.height)
-  }
-
-  @objc
-  private func keyboardWillHide(_: Notification) {
-    delegate?.viewControllerKeyboardWillHide()
   }
 
   override func viewWillAppear(_ animated: Bool) {
@@ -209,7 +182,7 @@ class TrueSheetViewController: UIViewController, UISheetPresentationControllerDe
     for (index, size) in sizes.enumerated() {
       // Exclude bottom safe area for consistency with a Scrollable content
       let adjustedContentHeight = contentHeight - bottomInset
-      let detent = detentFor(size, with: adjustedContentHeight + footerHeight, with: maxHeight) { id, value in
+      let detent = detentFor(size, with: adjustedContentHeight + footerHeight + headerHeight, with: maxHeight) { id, value in
         self.detentValues[id] = SizeInfo(index: index, value: value)
       }
 

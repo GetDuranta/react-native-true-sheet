@@ -5,6 +5,7 @@ import { TrueSheet, type TrueSheetProps } from '@lodev09/react-native-true-sheet
 import { DARK, DARK_GRAY, INPUT_HEIGHT, SPACING, times } from '../../utils'
 import { Input } from '../Input'
 import { DemoContent } from '../DemoContent'
+import { Footer } from '../Footer'
 
 interface FlatListSheetProps extends TrueSheetProps {}
 
@@ -20,21 +21,29 @@ export const FlatListSheet = forwardRef((props: FlatListSheetProps, ref: Ref<Tru
       blurTint="dark"
       backgroundColor={DARK}
       keyboardMode="pan"
+      FooterComponent={<Footer />}
+      HeaderComponent={
+        <View style={$header}>
+          <Input />
+        </View>
+      }
       edgeToEdge
       onDismiss={() => console.log('Sheet FlatList dismissed!')}
       onPresent={() => console.log(`Sheet FlatList presented!`)}
       {...props}
     >
-      <View style={$header}>
-        <Input />
-      </View>
       <FlatList<number>
         ref={flatListRef}
         nestedScrollEnabled
         data={times(50, (i) => i)}
         contentContainerStyle={$content}
         indicatorStyle="black"
-        renderItem={() => <DemoContent color={DARK_GRAY} />}
+        renderItem={() => (
+          <View>
+            <DemoContent color={DARK_GRAY} />
+            <Input />
+          </View>
+        )}
       />
     </TrueSheet>
   )

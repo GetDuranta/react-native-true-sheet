@@ -48,6 +48,7 @@ RCT_EXPORT_VIEW_PROPERTY(initialIndexAnimated, BOOL)
 
 // Internal properties
 RCT_EXPORT_VIEW_PROPERTY(contentHeight, NSNumber)
+RCT_EXPORT_VIEW_PROPERTY(headerHeight, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(footerHeight, NSNumber)
 
 @end

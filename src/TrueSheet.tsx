@@ -23,6 +23,7 @@ import type {
 import { TrueSheetModule } from './TrueSheetModule'
 import { TrueSheetGrabber } from './TrueSheetGrabber'
 import { TrueSheetFooter } from './TrueSheetFooter'
+import { TrueSheetHeader } from './TrueSheetHeader'
 
 const NATIVE_COMPONENT_NAME = 'TrueSheetView'
 const LINKING_ERROR =
@@ -35,6 +36,7 @@ export type ContainerSizeChangeEvent = NativeSyntheticEvent<{ width: number; hei
 
 interface TrueSheetNativeViewProps extends Omit<TrueSheetProps, 'backgroundColor'> {
   contentHeight?: number
+  headerHeight?: number
   footerHeight?: number
   background?: ProcessedColorValue | null
   scrollableHandle: number | null
@@ -47,6 +49,7 @@ interface TrueSheetState {
   containerWidth?: number
   containerHeight?: number
   contentHeight?: number
+  headerHeight?: number
   footerHeight?: number
   scrollableHandle: number | null
 }
@@ -80,6 +83,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
     this.onDragChange = this.onDragChange.bind(this)
     this.onDragEnd = this.onDragEnd.bind(this)
     this.onContentLayout = this.onContentLayout.bind(this)
+    this.onHeaderLayout = this.onHeaderLayout.bind(this)
     this.onFooterLayout = this.onFooterLayout.bind(this)
     this.onContainerSizeChange = this.onContainerSizeChange.bind(this)
 
@@ -87,6 +91,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
       containerWidth: undefined,
       containerHeight: undefined,
       contentHeight: undefined,
+      headerHeight: undefined,
       footerHeight: undefined,
       scrollableHandle: null,
     }
@@ -168,6 +173,12 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
 
   private onPresent(event: PresentEvent): void {
     this.props.onPresent?.(event)
+  }
+
+  private onHeaderLayout(event: LayoutChangeEvent): void {
+    this.setState({
+      headerHeight: event.nativeEvent.layout.height,
+    })
   }
 
   private onFooterLayout(event: LayoutChangeEvent): void {
@@ -255,6 +266,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
       blurTint,
       cornerRadius,
       maxHeight,
+      HeaderComponent,
       FooterComponent,
       style,
       contentContainerStyle,
@@ -272,6 +284,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
         background={processColor(backgroundColor)}
         cornerRadius={cornerRadius}
         contentHeight={this.state.contentHeight}
+        headerHeight={this.state.headerHeight}
         footerHeight={this.state.footerHeight}
         grabber={grabber}
         dimmed={dimmed}
@@ -306,6 +319,9 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
           ]}
           {...rest}
         >
+          <View collapsable={false} onLayout={this.onHeaderLayout}>
+            <TrueSheetHeader Component={HeaderComponent} />
+          </View>
           <View collapsable={false} onLayout={this.onContentLayout} style={contentContainerStyle}>
             {children}
           </View>

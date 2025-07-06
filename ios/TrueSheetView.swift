@@ -42,12 +42,15 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
 
   private var containerView: UIView?
   private var contentView: UIView?
+  private var headerView: UIView?
   private var footerView: UIView?
   private var scrollView: UIView?
 
   // Bottom: Reference the bottom constraint to adjust during keyboard event
   // Height: Reference height constraint during content updates
   private var footerConstraints: Constraints?
+  // Height: Reference height constraint during content updates
+  private var headerConstraints: Constraints?
 
   private var uiManager: RCTUIManager? {
     guard let uiManager = bridge?.uiManager else { return nil }
@@ -106,12 +109,14 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     // Remove all constraints
     // Fixes New Arch weird layout issue :/
     containerView?.unpin()
+    headerView?.unpin()
     footerView?.unpin()
     contentView?.unpin()
     scrollView?.unpin()
 
     containerView = nil
     contentView = nil
+    headerView = nil
     footerView = nil
     scrollView = nil
   }
@@ -124,8 +129,14 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     super.layoutSubviews()
 
     if let containerView, contentView == nil {
-      contentView = containerView.subviews[0]
-      footerView = containerView.subviews[1]
+      headerView = containerView.subviews[0]
+      contentView = containerView.subviews[1]
+      footerView = containerView.subviews[2]
+      
+      guard headerView == nil || footerView == nil || headerView == nil else {
+        Logger.error("Missing the required views")
+        return
+      }
 
       containerView.pinTo(view: viewController.view, constraints: nil)
 
@@ -135,17 +146,31 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
         setContentHeight(NSNumber(value: contentHeight))
       }
 
-      // Set footer constraints
+      // Here we essentially recreate a VStack component, with the footer at the bottom
+      // tracking the keyboard layout guide. This automatically moves the content
+      // when the software keyboard is summoned.
       if let footerView {
-        footerView.pinTo(view: viewController.view, from: [.left, .right, .bottom], with: 0) { constraints in
+        // Don't set the bottom constraint
+        footerView.pinTo(view: viewController.view, from: [.left, .right], with: 0) { constraints in
           self.footerConstraints = constraints
         }
+        // Instead, use the bottom anchor to track the keyboard guide
+        footerView.bottomAnchor.constraint(
+          equalTo: viewController.view.keyboardLayoutGuide.topAnchor
+        ).isActive = true
 
-        // Set initial footer height
+        // Set the container view to track the top of the footer view
+        containerView.pinTo(view: viewController.view, from: [.left, .right, .top], constraints: nil)
+        containerView.bottomAnchor.constraint(
+          equalTo: footerView.topAnchor
+        ).isActive = true
+
+        // ...and set initial footer height. This calls back into the controller
+        // and adjusts the view size to account for the footer.
         let footerHeight = footerView.bounds.height
         setFooterHeight(NSNumber(value: footerHeight))
       }
-
+      
       // Present sheet at initial index
       let initialIndex = self.initialIndex.intValue
       if initialIndex >= 0 {
@@ -157,22 +182,6 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
   }
 
   // MARK: - ViewController delegate
-
-  func viewControllerKeyboardWillHide() {
-    footerConstraints?.bottom?.constant = 0
-
-    UIView.animate(withDuration: 0.3) {
-      self.viewController.view.layoutIfNeeded()
-    }
-  }
-
-  func viewControllerKeyboardWillShow(_ keyboardHeight: CGFloat) {
-    footerConstraints?.bottom?.constant = -keyboardHeight
-
-    UIView.animate(withDuration: 0.3) {
-      self.viewController.view.layoutIfNeeded()
-    }
-  }
 
   func viewControllerDidChangeWidth(_ width: CGFloat) {
     // We only pass width to JS since height is handled by the constraints
@@ -254,6 +263,30 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     }
 
     viewController.contentHeight = contentHeight
+
+    if #available(iOS 15.0, *) {
+      withPresentedSheet { _ in
+        viewController.setupSizes()
+      }
+    }
+  }
+
+  @objc
+  func setHeaderHeight(_ height: NSNumber) {
+    let headerHeight = CGFloat(height.floatValue)
+    guard let headerView, viewController.headerHeight != headerHeight else {
+      return
+    }
+
+    viewController.headerHeight = headerHeight
+
+    if headerView.subviews.first != nil {
+      containerView?.bringSubviewToFront(headerView)
+      headerConstraints?.height?.constant = viewController.headerHeight
+    } else {
+      containerView?.sendSubviewToBack(headerView)
+      headerConstraints?.height?.constant = 0
+    }
 
     if #available(iOS 15.0, *) {
       withPresentedSheet { _ in
