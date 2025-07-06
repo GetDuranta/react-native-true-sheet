@@ -1,4 +1,12 @@
 {
   "name": "TrueSheetExample",
-  "displayName": "TrueSheetExample"
+  "displayName": "TrueSheetExample",
+  "newArchEnabled": "true",
+  "ios" : {
+    "supportsTablet": true,
+    "newArchEnabled": "true"
+  },
+  "android": {
+    "supportsTablet": true
+  }
 }

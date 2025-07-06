@@ -98,9 +98,9 @@ export const MapScreen = () => {
         onPresent={(e) => animateButton(e.nativeEvent)}
         onSizeChange={(e) => animateButton(e.nativeEvent)}
         onDragEnd={(e) => animateButton(e.nativeEvent)}
-        // initialIndexAnimated={false}
+        initialIndexAnimated={false}
         onMount={() => {
-          // sheetRef.current?.present(1)
+          sheetRef.current?.present(1)
           console.log('Sheet is ready!')
         }}
       >

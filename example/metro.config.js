@@ -12,6 +12,7 @@ const config = getConfig(getDefaultConfig(__dirname), {
   project: __dirname,
 })
 
+config.watchFolders = [root, __dirname]
 /**
  * Metro configuration
  * https://facebook.github.io/metro/docs/configuration
