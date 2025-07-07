@@ -165,6 +165,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
   }
 
   private onContainerSizeChange(event: ContainerSizeChangeEvent): void {
+    console.log('Size change event', event.nativeEvent.width, event.nativeEvent.height)
     this.setState({
       containerWidth: event.nativeEvent.width,
       containerHeight: event.nativeEvent.height,
@@ -305,6 +306,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
         onContainerSizeChange={this.onContainerSizeChange}
       >
         <View
+          nativeID="container-view"
           collapsable={false}
           style={[
             {
@@ -314,26 +316,58 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
               // New Arch interop does not support updating it in native :/
               width: this.state.containerWidth,
               height: this.state.containerHeight,
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              borderColor: 'red',
+              borderWidth: 2,
             },
-            style,
+            //style,
           ]}
           {...rest}
         >
-          <View collapsable={false} onLayout={this.onHeaderLayout}>
+          <View
+            style={{
+              backgroundColor: 'red',
+            }}
+            nativeID="header-view"
+            collapsable={false}
+            onLayout={this.onHeaderLayout}
+          >
             <TrueSheetHeader Component={HeaderComponent} />
           </View>
-          <View collapsable={false} onLayout={this.onContentLayout} style={contentContainerStyle}>
+          <View
+            nativeID="content-view"
+            collapsable={false}
+            onLayout={this.onContentLayout}
+            style={{
+              flexGrow: 1,
+              flexShrink: 1,
+              backgroundColor: 'yellow',
+              borderWidth: 2,
+              borderColor: 'cyan',
+            }}
+          >
             {children}
           </View>
-          <View collapsable={false} onLayout={this.onFooterLayout}>
+          <View
+            style={{
+              backgroundColor: 'green',
+            }}
+            nativeID="footer-view"
+            collapsable={false}
+            onLayout={this.onFooterLayout}
+          >
             <TrueSheetFooter Component={FooterComponent} />
           </View>
+
           {Platform.OS === 'android' && <TrueSheetGrabber visible={grabber} {...grabberProps} />}
         </View>
       </TrueSheetNativeView>
     )
   }
 }
+// contentContainerStyle
 
 const $nativeSheet: ViewStyle = {
   position: 'absolute',

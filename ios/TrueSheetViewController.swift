@@ -16,7 +16,7 @@ struct SizeInfo {
 // MARK: - TrueSheetViewControllerDelegate
 
 protocol TrueSheetViewControllerDelegate: AnyObject {
-  func viewControllerDidChangeWidth(_ width: CGFloat)
+  func viewControllerDidChangeDimensions()
   func viewControllerDidDismiss()
   func viewControllerDidChangeSize(_ sizeInfo: SizeInfo?)
   func viewControllerWillAppear()
@@ -36,6 +36,7 @@ class TrueSheetViewController: UIViewController, UISheetPresentationControllerDe
   private var backgroundView: UIVisualEffectView
 
   var lastViewWidth: CGFloat = 0
+  var lastViewHeight: CGFloat = 0
   var detentValues: [String: SizeInfo] = [:]
 
   var sizes: [Any] = ["medium", "large"]
@@ -126,11 +127,11 @@ class TrueSheetViewController: UIViewController, UISheetPresentationControllerDe
   /// let's try to minimize size update by comparing last known width
   override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
-
-    if lastViewWidth != view.frame.width {
-      delegate?.viewControllerDidChangeWidth(view.bounds.width)
-      lastViewWidth = view.frame.width
-    }
+//    if lastViewWidth != view.frame.width || lastViewHeight != view.frame.height {
+    delegate?.viewControllerDidChangeDimensions()
+//      lastViewWidth = view.frame.width
+//      lastViewHeight = view.frame.height
+//    }
   }
 
   /// Setup background. Supports color or blur effect.

@@ -1,7 +1,9 @@
 {
   "name": "TrueSheetExample",
   "displayName": "TrueSheetExample",
+  "newArchEnabled": "false",
   "ios" : {
-    "supportsTablet": true
+    "supportsTablet": true,
+    "newArchEnabled": "false"
   }
 }

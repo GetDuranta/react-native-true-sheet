@@ -78,54 +78,56 @@ export const MapScreen = () => {
         }}
         userInterfaceStyle="dark"
       />
-      <AnimatedButton
-        activeOpacity={0.6}
-        style={$floatingButtonStyles}
-        onPress={() => sheetRef.current?.resize(0)}
-      />
-      <AnimatedTrueSheet
-        sizes={['15%', 'auto', 'large']}
-        ref={sheetRef}
-        blurTint="dark"
-        backgroundColor={DARK}
-        edgeToEdge
-        contentContainerStyle={{ padding: SPACING, paddingBottom: SPACING * 3 }}
-        dimmedIndex={2}
-        dismissible={false}
-        cornerRadius={12}
-        initialIndex={1}
-        onDragChange={dragChangeHandler}
-        onPresent={(e) => animateButton(e.nativeEvent)}
-        onSizeChange={(e) => animateButton(e.nativeEvent)}
-        onDragEnd={(e) => animateButton(e.nativeEvent)}
-        // initialIndexAnimated={false}
-        onMount={() => {
-          // sheetRef.current?.present(1)
-          console.log('Sheet is ready!')
-        }}
-      >
-        <View style={$heading}>
-          <Text style={$title}>True Sheet 💩</Text>
-          <Text style={$subtitle}>The true native bottom sheet experience.</Text>
-        </View>
-        <Button text="TrueSheet View" onPress={() => presentBasicSheet(0)} />
-        <Button text="TrueSheet Prompt" onPress={() => promptSheet.current?.present()} />
-        <Button text="TrueSheet ScrollView" onPress={() => scrollViewSheet.current?.present()} />
-        <Button text="TrueSheet FlatList" onPress={() => flatListSheet.current?.present()} />
-        <Button text="TrueSheet Gestures" onPress={() => gestureSheet.current?.present()} />
-        <Button text="Blank Sheet" onPress={() => blankSheet.current?.present()} />
+      <FlatListSheet initialIndex={0} ref={flatListSheet} />
 
-        <Spacer />
-        <Button text="Expand" onPress={() => sheetRef.current?.resize(2)} />
-        <Button text="Collapse" onPress={() => sheetRef.current?.resize(1)} />
+      {/*<AnimatedButton*/}
+      {/*  activeOpacity={0.6}*/}
+      {/*  style={$floatingButtonStyles}*/}
+      {/*  onPress={() => sheetRef.current?.resize(0)}*/}
+      {/*/>*/}
+      {/*<AnimatedTrueSheet*/}
+      {/*  sizes={['15%', 'auto', 'large']}*/}
+      {/*  ref={sheetRef}*/}
+      {/*  blurTint="dark"*/}
+      {/*  backgroundColor={DARK}*/}
+      {/*  edgeToEdge*/}
+      {/*  contentContainerStyle={{ padding: SPACING, paddingBottom: SPACING * 3 }}*/}
+      {/*  dimmedIndex={2}*/}
+      {/*  dismissible={false}*/}
+      {/*  cornerRadius={12}*/}
+      {/*  initialIndex={1}*/}
+      {/*  onDragChange={dragChangeHandler}*/}
+      {/*  onPresent={(e) => animateButton(e.nativeEvent)}*/}
+      {/*  onSizeChange={(e) => animateButton(e.nativeEvent)}*/}
+      {/*  onDragEnd={(e) => animateButton(e.nativeEvent)}*/}
+      {/*  // initialIndexAnimated={false}*/}
+      {/*  onMount={() => {*/}
+      {/*    // sheetRef.current?.present(1)*/}
+      {/*    console.log('Sheet is ready!')*/}
+      {/*  }}*/}
+      {/*>*/}
+      {/*  <View style={$heading}>*/}
+      {/*    <Text style={$title}>True Sheet 💩</Text>*/}
+      {/*    <Text style={$subtitle}>The true native bottom sheet experience.</Text>*/}
+      {/*  </View>*/}
+      {/*  <Button text="TrueSheet View" onPress={() => presentBasicSheet(0)} />*/}
+      {/*  <Button text="TrueSheet Prompt" onPress={() => promptSheet.current?.present()} />*/}
+      {/*  <Button text="TrueSheet ScrollView" onPress={() => scrollViewSheet.current?.present()} />*/}
+      {/*  <Button text="TrueSheet FlatList" onPress={() => flatListSheet.current?.present()} />*/}
+      {/*  <Button text="TrueSheet Gestures" onPress={() => gestureSheet.current?.present()} />*/}
+      {/*  <Button text="Blank Sheet" onPress={() => blankSheet.current?.present()} />*/}
 
-        <BasicSheet ref={basicSheet} />
-        <PromptSheet ref={promptSheet} />
-        <ScrollViewSheet ref={scrollViewSheet} />
-        <FlatListSheet ref={flatListSheet} />
-        <GestureSheet ref={gestureSheet} />
-        <BlankSheet ref={blankSheet} />
-      </AnimatedTrueSheet>
+      {/*  <Spacer />*/}
+      {/*  <Button text="Expand" onPress={() => sheetRef.current?.resize(2)} />*/}
+      {/*  <Button text="Collapse" onPress={() => sheetRef.current?.resize(1)} />*/}
+
+      {/*  <BasicSheet ref={basicSheet} />*/}
+      {/*  <PromptSheet ref={promptSheet} />*/}
+      {/*  <ScrollViewSheet ref={scrollViewSheet} />*/}
+      {/*  <FlatListSheet ref={flatListSheet} />*/}
+      {/*  <GestureSheet ref={gestureSheet} />*/}
+      {/*  <BlankSheet ref={blankSheet} />*/}
+      {/*</AnimatedTrueSheet>*/}
     </View>
   )
 }
