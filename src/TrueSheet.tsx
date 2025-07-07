@@ -165,7 +165,6 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
   }
 
   private onContainerSizeChange(event: ContainerSizeChangeEvent): void {
-    console.log('Size change event', event.nativeEvent.width, event.nativeEvent.height)
     this.setState({
       containerWidth: event.nativeEvent.width,
       containerHeight: event.nativeEvent.height,
@@ -306,7 +305,6 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
         onContainerSizeChange={this.onContainerSizeChange}
       >
         <View
-          nativeID="container-view"
           collapsable={false}
           style={[
             {
@@ -319,45 +317,25 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
               position: 'absolute',
               left: 0,
               top: 0,
-              borderColor: 'red',
-              borderWidth: 2,
             },
-            //style,
+            style,
           ]}
           {...rest}
         >
           <View
-            style={{
-              backgroundColor: 'red',
-            }}
-            nativeID="header-view"
             collapsable={false}
             onLayout={this.onHeaderLayout}
           >
             <TrueSheetHeader Component={HeaderComponent} />
           </View>
           <View
-            nativeID="content-view"
             collapsable={false}
             onLayout={this.onContentLayout}
-            style={{
-              flexGrow: 1,
-              flexShrink: 1,
-              backgroundColor: 'yellow',
-              borderWidth: 2,
-              borderColor: 'cyan',
-            }}
+            style={{ flexGrow: 1, flexShrink: 1, }}
           >
             {children}
           </View>
-          <View
-            style={{
-              backgroundColor: 'green',
-            }}
-            nativeID="footer-view"
-            collapsable={false}
-            onLayout={this.onFooterLayout}
-          >
+          <View collapsable={false} onLayout={this.onFooterLayout}>
             <TrueSheetFooter Component={FooterComponent} />
           </View>
 

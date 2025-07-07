@@ -33,7 +33,6 @@ RCT_EXPORT_VIEW_PROPERTY(onDragEnd, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onContainerSizeChange, RCTDirectEventBlock)
 
 // Properties
-RCT_EXPORT_VIEW_PROPERTY(scrollableHandle, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(maxHeight, NSNumber)
 RCT_EXPORT_VIEW_PROPERTY(sizes, NSArray)
 RCT_EXPORT_VIEW_PROPERTY(blurTint, NSString)

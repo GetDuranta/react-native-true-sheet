@@ -34,25 +34,18 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
   private var eventDispatcher: (any RCTEventDispatcherProtocol)?
   private var viewController: TrueSheetViewController
 
+  private var lastViewWidth: CGFloat = 0
+  private var lastViewHeight: CGFloat = 0
+
   private var touchHandler: RCTTouchHandler
   // New Arch
   private var surfaceTouchHandler: RCTSurfaceTouchHandler
 
   // MARK: - Content properties
-  private var keyboardAvoidingView: UIView
-  
   private var containerView: UIView?
   private var contentView: UIView?
   private var headerView: UIView?
   private var footerView: UIView?
-  private var scrollView: UIView?
-
-  // Bottom: Reference the bottom constraint to adjust during keyboard event
-  // Height: Reference height constraint during content updates
-  private var footerConstraints: Constraints?
-  // Height: Reference height constraint during content updates
-  private var headerConstraints: Constraints?
-  private var contentConstraints: Constraints?
 
   private var uiManager: RCTUIManager? {
     guard let uiManager = bridge?.uiManager else { return nil }
@@ -69,17 +62,9 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     touchHandler = RCTTouchHandler(bridge: bridge)
     surfaceTouchHandler = RCTSurfaceTouchHandler()
 
-    let rect = CGRect(x: 0, y: 0, width: 0, height: 0)
-    keyboardAvoidingView = UIView(frame: rect)
-
     super.init(frame: .zero)
     
     viewController.delegate = self
-    
-//    containerView.keyboardLayoutGuide.followsUndockedKeyboard = true
-//    let cons = containerView.bottomAnchor.constraint(equalTo: containerView.keyboardLayoutGuide.topAnchor)
-//    cons.isActive = true
-//    containerView.addConstraint(cons)
   }
 
   @available(*, unavailable)
@@ -88,50 +73,16 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
   }
 
   override func insertReactSubview(_ subview: UIView!, at index: Int) {
-//    super.insertReactSubview(subview, at: index)
     guard containerView == nil else {
       Logger.error("Sheet can only have one content view.")
       return
     }
-
-    let cv = viewController.view!;
-    cv.addSubview(keyboardAvoidingView)
-
-    keyboardAvoidingView.accessibilityLabel = "Avoider"
-//    keyboardAvoidingView.autoresizingMask = [.flexibleWidth, .flexibleHeight, .flexibleRightMargin, .flexibleBottomMargin]
-    keyboardAvoidingView.backgroundColor = .cyan
-//    keyboardAvoidingView.clipsToBounds = true
-    keyboardAvoidingView.translatesAutoresizingMaskIntoConstraints = false
-    let constraints: [NSLayoutConstraint] = [
-      cv.topAnchor.constraint(equalTo: keyboardAvoidingView.topAnchor),
-//      cv.bottomAnchor.constraint(equalTo: keyboardAvoidingView.bottomAnchor),
-      cv.leadingAnchor.constraint(equalTo: keyboardAvoidingView.leadingAnchor),
-      cv.trailingAnchor.constraint(equalTo: keyboardAvoidingView.trailingAnchor),
-    ]
-    for c in constraints {
-      c.isActive = true
-//      c.priority = UILayoutPriority(1.0)
-      cv.addConstraint(c)
-    }
-    
-    let bottom = cv.keyboardLayoutGuide.topAnchor.constraint(equalTo: keyboardAvoidingView.bottomAnchor)
-//    let bottom = keyboardAvoidingView.keyboardLayoutGuide.topAnchor.constraint(equalTo: keyboardAvoidingView.bottomAnchor)
-//    bottom.priority = UILayoutPriority(20.0)
-    if #available(iOS 17.0, *) {
-      cv.keyboardLayoutGuide.usesBottomSafeArea = false
-    }
-//    let trailing = cv.keyboardLayoutGuide.trailingAnchor.constraint(equalToSystemSpacingAfter: keyboardAvoidingView.trailingAnchor, multiplier: 1.0)
-    NSLayoutConstraint.activate([bottom])
-    cv.addConstraint(bottom)
-    cv.keyboardLayoutGuide.setConstraints([bottom], activeWhenNearEdge: .bottom)
-//    cv.addConstraint(trailing)
-
-    keyboardAvoidingView.insertReactSubview(subview, at: index)
-    keyboardAvoidingView.addSubview(subview)
-
     containerView = subview
-    
-//    viewController.view.addSubview(subview)
+
+    let kav = viewController.keyboardAvoidingView;
+    kav.insertReactSubview(subview, at: index)
+    kav.addSubview(subview)
+
     touchHandler.attach(to: subview)
     surfaceTouchHandler.attach(to: subview)
   }
@@ -142,8 +93,7 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
       return
     }
 
-//    keyboardAvoidingView.removeReactSubview(subview)
-//    super.removeReactSubview(subview)
+    viewController.keyboardAvoidingView.removeReactSubview(subview)
 
     // Touch handler for Old Arch
     touchHandler.detach(from: subview)
@@ -151,29 +101,10 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     // Touch handler that works in New Arch
     surfaceTouchHandler.detach(from: subview)
 
-    // Remove all constraints
-    // Fixes New Arch weird layout issue :/
-//    removeAllConstraints(from: [footerView])
-//    scrollView?.unpin()
-
     containerView = nil
-    contentView = nil
     headerView = nil
+    contentView = nil
     footerView = nil
-    scrollView = nil
-  }
-
-  func removeAllConstraints(from views: [UIView?]) {
-      views.forEach { view in
-        view?.translatesAutoresizingMaskIntoConstraints = true
-        if let constraints = view?.constraints {
-          view?.removeConstraints(constraints)
-        }
-      }
-  }
-
-  override func didUpdateReactSubviews() {
-    // Do nothing, as subviews are managed by `insertReactSubview`
   }
 
   override func layoutSubviews() {
@@ -189,50 +120,10 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
         return
       }
 
-      //containerView.translatesAutoresizingMaskIntoConstraints = false
-//      keyboardLayoutGuide.topAnchor.constraint(equalToSystemSpacingBelow: bottomAnchor, multiplier: 1.0).isActive = true
-//      let buttonBottom = containerView.keyboardLayoutGuide.topAnchor.constraint(equalToSystemSpacingBelow: footerView.bottomAnchor, multiplier: 1.0)
-//      let buttonTrailing = containerView.keyboardLayoutGuide.trailingAnchor.constraint(equalToSystemSpacingAfter: footerView.trailingAnchor, multiplier: 1.0)
-//      NSLayoutConstraint.activate([buttonBottom, buttonTrailing])
-//      containerView.keyboardLayoutGuide.followsUndockedKeyboard = true
-      
-//      Logger.info(headerView.nativeID)
-//      Logger.info(contentView.nativeID)
-//      Logger.info(footerView.nativeID)
-
-      // Remove all the constraints coming from React
-//      removeAllConstraints(from: [headerView, contentView, footerView, containerView])
-
-      // Container view fills the entire view controller
-//      containerView.pinTo(view: viewController.view, constraints: nil)
-//
-//      // Pin header to the top
-//      headerView.pinTo(view: containerView, from: [.left, .right, .top]) { constraints in
-//        self.headerConstraints = constraints
-//      }
-//
-////      // Pin footer to the bottom
-//      footerView.pinTo(view: containerView, from: [.left, .right, .bottom]) { constraints in
-//        self.footerConstraints = constraints
-//      }
-//
-//      // Pin content view between header and footer
-//      contentView.pinTo(view: containerView, from: [.left, .right]) { constraints in
-//        self.contentConstraints = constraints
-//      }
-//
-//      contentView.topAnchor.constraint(
-//        equalTo: headerView.bottomAnchor
-//      ).isActive = true
-//      footerView.topAnchor.constraint(
-//        equalTo: contentView.bottomAnchor
-//      ).isActive = true
-
-      // Set initial content height
+      // Set the initial sizes, this calls back into the controller
+      // and adjusts the view size if needed.
       let contentHeight = contentView.bounds.height
       setContentHeight(NSNumber(value: contentHeight))
-      // ...and set initial footer/header heights. This calls back into the controller
-      // and adjusts the view size to account for the footer.
       let footerHeight = footerView.bounds.height
       setFooterHeight(NSNumber(value: footerHeight))
       let headerHeight = headerView.bounds.height
@@ -250,10 +141,16 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
 
   // MARK: - ViewController delegate
 
+  /// This is called multiple times while sheet is being dragged.
+  /// let's try to minimize size update by comparing the last known dimensions
   func viewControllerDidChangeDimensions() {
-    let bounds = keyboardAvoidingView.bounds
-    dispatchEvent(name: "onContainerSizeChange", block: onContainerSizeChange,
-                  data: ["width": bounds.width, "height": bounds.height])
+    let bounds = viewController.keyboardAvoidingView.bounds
+    if bounds.width != lastViewWidth || bounds.height != lastViewHeight {
+      lastViewWidth = bounds.width
+      lastViewHeight = bounds.height
+      dispatchEvent(name: "onContainerSizeChange", block: onContainerSizeChange,
+                    data: ["width": bounds.width, "height": bounds.height])
+    }
   }
 
   func viewControllerDidDrag(_ state: UIGestureRecognizer.State, _ height: CGFloat) {
@@ -269,16 +166,6 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     default:
       Logger.info("Drag state is not supported")
     }
-  }
-
-  func viewControllerWillAppear() {
-    guard let contentView, let scrollView, let containerView else {
-      return
-    }
-
-    // Add constraints to fix weirdness and support ScrollView
-    // contentView.pinTo(view: containerView, constraints: nil)
-    // scrollView.pinTo(view: contentView, constraints: nil)
   }
 
   func viewControllerDidDismiss() {
@@ -332,7 +219,6 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
     }
 
     viewController.contentHeight = contentHeight
-//    contentConstraints?.height?.constant = contentHeight
 
     if #available(iOS 15.0, *) {
       withPresentedSheet { _ in
@@ -344,7 +230,7 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
   @objc
   func setHeaderHeight(_ height: NSNumber) {
     let headerHeight = CGFloat(height.floatValue)
-    guard let headerView, viewController.headerHeight != headerHeight else {
+    guard viewController.headerHeight != headerHeight else {
       return
     }
 
@@ -360,7 +246,7 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
   @objc
   func setFooterHeight(_ height: NSNumber) {
     let footerHeight = CGFloat(height.floatValue)
-    guard let footerView, viewController.footerHeight != footerHeight else {
+    guard viewController.footerHeight != footerHeight else {
       return
     }
 
@@ -456,14 +342,6 @@ class TrueSheetView: UIView, RCTInvalidating, TrueSheetViewControllerDelegate {
         viewController.setupDimmedBackground()
       }
     }
-  }
-
-  @objc
-  func setScrollableHandle(_ tag: NSNumber?) {
-    scrollView = uiManager?.view(forReactTag: tag)
-    
-//    let scroller = scrollView?.inputViewController?.contentScrollView(for: NSDirectionalRectEdge.trailing)
-//    viewController.setContentScrollView(scroller, for: NSDirectionalRectEdge.trailing)
   }
 
   // MARK: - Methods
