@@ -1,24 +1,23 @@
-import { PureComponent, Component, type RefObject, createRef, type ReactNode } from 'react'
+import { Component, createRef, PureComponent, type ReactNode, type RefObject } from 'react'
 import {
-  requireNativeComponent,
-  Platform,
   findNodeHandle,
-  View,
-  type NativeMethods,
-  type ViewStyle,
-  type NativeSyntheticEvent,
   type LayoutChangeEvent,
+  type NativeMethods,
+  type NativeSyntheticEvent,
+  Platform,
   type ProcessedColorValue,
-  processColor,
+  requireNativeComponent,
+  View,
+  type ViewStyle,
 } from 'react-native'
 
 import type {
-  TrueSheetProps,
   DragBeginEvent,
   DragChangeEvent,
   DragEndEvent,
-  SizeChangeEvent,
   PresentEvent,
+  SizeChangeEvent,
+  TrueSheetProps,
 } from './TrueSheet.types'
 import { TrueSheetModule } from './TrueSheetModule'
 import { TrueSheetGrabber } from './TrueSheetGrabber'
@@ -281,8 +280,6 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
         scrollableHandle={this.state.scrollableHandle}
         sizes={sizes}
         blurTint={blurTint}
-        background={processColor(backgroundColor)}
-        cornerRadius={cornerRadius}
         contentHeight={this.state.contentHeight}
         headerHeight={this.state.headerHeight}
         footerHeight={this.state.footerHeight}
@@ -307,31 +304,30 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
         <View
           collapsable={false}
           style={[
+            $contentContainer,
             {
-              overflow: Platform.select({ ios: undefined, android: 'hidden' }),
-
-              // Update the width on JS side.
-              // New Arch interop does not support updating it in native :/
+              // The native side communicates the available drawing area
+              // via containerWidth/containerHeight properties. We set them
+              // here and let the React layout engine handle the rest.
               width: this.state.containerWidth,
               height: this.state.containerHeight,
-              position: 'absolute',
-              left: 0,
-              top: 0,
             },
-            style,
+            {
+              backgroundColor: backgroundColor,
+              borderTopLeftRadius: cornerRadius,
+              borderTopRightRadius: cornerRadius,
+            },
+            contentContainerStyle,
           ]}
           {...rest}
         >
-          <View
-            collapsable={false}
-            onLayout={this.onHeaderLayout}
-          >
+          <View collapsable={false} onLayout={this.onHeaderLayout}>
             <TrueSheetHeader Component={HeaderComponent} />
           </View>
           <View
             collapsable={false}
             onLayout={this.onContentLayout}
-            style={{ flexGrow: 1, flexShrink: 1, }}
+            style={[$growableContent, style]}
           >
             {children}
           </View>
@@ -345,7 +341,17 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
     )
   }
 }
-// contentContainerStyle
+
+const $contentContainer: ViewStyle = {
+  position: 'absolute',
+  left: 0,
+  top: 0,
+}
+
+const $growableContent: ViewStyle = {
+  flexGrow: 1,
+  flexShrink: 1,
+}
 
 const $nativeSheet: ViewStyle = {
   position: 'absolute',

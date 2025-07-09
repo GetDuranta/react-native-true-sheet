@@ -5,5 +5,8 @@
   "ios" : {
     "supportsTablet": true,
     "newArchEnabled": "true"
+  },
+  "android": {
+    "supportsTablet": true
   }
 }
