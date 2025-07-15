@@ -317,9 +317,9 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
             maxHeight = newHeight
             rootSheetView.forceLayout()
             sheetContainerView?.requestLayout()
-//            screwUpState();
+            screwUpState();
           }
-          behavior.setUpdateImportantForAccessibilityOnSiblings(true)
+//          behavior.setUpdateImportantForAccessibilityOnSiblings(true)
           //expandedOffset = 0
 //          halfExpandedRatio = 0.1f
 //          state = BottomSheetBehavior.STATE_HALF_EXPANDED

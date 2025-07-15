@@ -203,6 +203,7 @@ class TrueSheetView(context: Context) :
         } else {
           rootSheetView.rootView.updatePadding(bottom = 0)
         }
+        rootSheetView.requestLayout()
         insets
       }
       // Recompute the visible rectangle on global layout changes (e.g. device rotation)
@@ -348,7 +349,7 @@ class TrueSheetView(context: Context) :
   fun configureIfShowing() {
     if (sheetDialog.isShowing) {
       sheetDialog.configure()
-      updateViewSize()
+//      updateViewSize()
     }
   }
 
@@ -367,7 +368,7 @@ class TrueSheetView(context: Context) :
     if (sheetDialog.contentHeight == height) return
 
     sheetDialog.contentHeight = height
-    configureIfShowing()
+//    configureIfShowing()
   }
 
   fun setHeaderHeight(height: Int) {
