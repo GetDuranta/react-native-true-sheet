@@ -12,6 +12,7 @@ import com.facebook.react.uimanager.ThemedReactContext
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.lodev09.truesheet.core.Utils
+import java.lang.reflect.Field
 
 data class SizeInfo(val index: Int, val value: Float)
 
@@ -30,7 +31,8 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
     }
 
   val sheetContainerView: ViewGroup?
-    get() = proxyView.parent?.let { it as? ViewGroup }
+    get() = rootSheetView.parent?.let { it as? ViewGroup }
+//    get() = proxyView.parent?.let { it as? ViewGroup }
 
   /**
    * Specify whether the sheet background is dimmed.
@@ -79,15 +81,21 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
 
   // 3rd child is the footer view
   val footerView: ViewGroup?
-    get() = containerView?.getChildAt(2) as? ViewGroup
+    get() = containerView?.getChildAt(3) as? ViewGroup
 
   var sizes: Array<Any> = arrayOf("medium", "large")
 
-  private val proxyView = ConstraintLayout(reactContext)
+//  private val proxyView = ConstraintLayout(reactContext)
 
   init {
-    proxyView.addView(rootSheetView)
-    setContentView(proxyView)
+//    proxyView.addView(rootSheetView)
+//      ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_PARENT, ConstraintLayout.LayoutParams.MATCH_PARENT))
+
+//    proxyView.minHeight = maxHeight
+//    proxyView.maxHeight = 1500
+
+  //  setContentView(proxyView)
+    setContentView(rootSheetView)
 
     // Setup window params to adjust layout based on Keyboard state
     window?.apply {
@@ -99,9 +107,9 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
     maxScreenHeight = Utils.screenHeight(reactContext, edgeToEdge)
   }
 
-  fun getVisibleContentDimensions() : Rect {
+  fun getConstraintDimensions() : Rect {
     val rect = Rect()
-    proxyView.getGlobalVisibleRect(rect)
+    rootSheetView.getGlobalVisibleRect(rect)
     return rect
   }
 
@@ -114,7 +122,7 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
     // handled by the React side of things.
     val transparent = Color.TRANSPARENT.toDrawable()
     sheetContainerView?.background = transparent
-    proxyView.background = transparent
+//    proxyView.background = transparent
     rootSheetView.background = transparent
 
     if (edgeToEdge) {
@@ -182,6 +190,13 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
       configure()
       setStateForSizeIndex(sizeIndex)
 
+//      val header1 = containerView?.getChildAt(0)!!
+//      val content1 = containerView?.getChildAt(1)!!
+//      val widthSpec = View.MeasureSpec.makeMeasureSpec(500, View.MeasureSpec.AT_MOST)
+//      val heightSpec = View.MeasureSpec.makeMeasureSpec(50, View.MeasureSpec.AT_MOST)
+//      content1.measure(widthSpec, heightSpec)
+//      content1.measuredHeight.toFloat()
+
       if (!animated) {
         // Disable animation
         window?.setWindowAnimations(0)
@@ -210,7 +225,7 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
 
         is String -> {
           when (size) {
-            "auto" -> minOf(contentHeight + headerHeight + footerHeight, maxScreenHeight*10/9)
+            "auto" -> minOf(contentHeight + headerHeight + footerHeight, maxScreenHeight)
 
             "large" -> maxScreenHeight
 
@@ -271,26 +286,50 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
       else -> BottomSheetBehavior.STATE_HIDDEN
     }
 
+  fun isAtTheAutoSizeDetent() : Boolean {
+    return false
+  }
+
   /**
    * Configure the sheet based from the size preference.
    */
   fun configure() {
     // Configure sheet sizes
     behavior.apply {
-      skipCollapsed = false
-      isFitToContents = true
+//      skipCollapsed = false
+///      isFitToContents = false
 
       // m3 max width 640dp
-      maxWidth = Utils.toPixel(640.0).toInt()
+//      maxWidth = Utils.toPixel(640.0).toInt()
+//      maxHeight = -1
+
+//      maxHeight = maxScreenHeight
 
       when (sizes.size) {
         1 -> {
-          maxHeight = getSizeHeight(sizes[0])
+          val newHeight = getSizeHeight(sizes[0])
+          // If we only are at the "auto" size, then enable content-fit sizing
+          isFitToContents = true
+//          isFitToContents = (sizes[0] == "auto")
           skipCollapsed = true
+
+          if (newHeight > maxHeight) {
+            maxHeight = newHeight
+            rootSheetView.forceLayout()
+            sheetContainerView?.requestLayout()
+//            screwUpState();
+          }
+          behavior.setUpdateImportantForAccessibilityOnSiblings(true)
+          //expandedOffset = 0
+//          halfExpandedRatio = 0.1f
+//          state = BottomSheetBehavior.STATE_HALF_EXPANDED
+//          state = BottomSheetBehavior.STATE_EXPANDED
+//          show()
         }
 
         2 -> {
           setPeekHeight(getSizeHeight(sizes[0]), isShowing)
+          halfExpandedRatio = 0.99f
           maxHeight = getSizeHeight(sizes[1])
         }
 
@@ -302,15 +341,21 @@ class TrueSheetDialog(private val reactContext: ThemedReactContext, private val 
 
           // Android crashes if 1.0f is specified for the half-expanded ratio
           val ratio = minOf(getSizeHeight(sizes[1]).toFloat() / maxScreenHeight.toFloat(), 0.99f)
-          halfExpandedRatio = ratio
+          halfExpandedRatio = maxOf(ratio, 0.01f)
           maxHeight = getSizeHeight(sizes[2])
         }
       }
       // Since the React content no longer drives the height calculations, update
       // the proxy view's height to take all the available space.
-      proxyView.minHeight = maxHeight
-      proxyView.maxHeight = maxHeight
+//      proxyView.minHeight = maxHeight
+//      proxyView.maxHeight = maxHeight
     }
+  }
+
+  private fun screwUpState() {
+//    val clazz = Class.forName(behavior.javaClass.name)
+//    clazz.getMethod()
+    behavior.state = BottomSheetBehavior.STATE_EXPANDED
   }
 
   /**

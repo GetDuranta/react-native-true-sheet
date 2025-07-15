@@ -6,10 +6,15 @@ import {
   type StyleProp,
   type TextStyle,
   type ViewStyle,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  FlatList,
 } from 'react-native'
 import { TrueSheet, type SizeInfo } from '@lodev09/react-native-true-sheet'
 import MapView from 'react-native-maps'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { useSharedValue, withSpring, useAnimatedStyle } from 'react-native-reanimated'
 
 import {
@@ -20,8 +25,8 @@ import {
   PromptSheet,
   ScrollViewSheet,
 } from '../components/sheets'
-import { Button, Spacer } from '../components'
-import { BLUE, DARK, DARK_BLUE, GRAY, SPACING, SPRING_CONFIG } from '../utils'
+import { Button, DemoContent, Input, Spacer } from '../components'
+import { BLUE, DARK, DARK_BLUE, DARK_GRAY, GRAY, SPACING, SPRING_CONFIG, times } from '../utils'
 import { useDragChangeHandler } from '../hooks'
 
 const AnimatedButton = Animated.createAnimatedComponent(TouchableOpacity)
@@ -83,6 +88,8 @@ export const MapScreen = () => {
         style={$floatingButtonStyles}
         onPress={() => sheetRef.current?.resize(0)}
       />
+      {/*<PromptSheet ref={promptSheet} initialIndex={0} />*/}
+      {/*<FlatListSheet initialIndex={0} ref={flatListSheet} />*/}
       <AnimatedTrueSheet
         sizes={['15%', 'auto', 'large']}
         ref={sheetRef}
@@ -93,7 +100,7 @@ export const MapScreen = () => {
         dimmedIndex={2}
         dismissible={false}
         cornerRadius={12}
-        initialIndex={1}
+        initialIndex={0}
         onDragChange={dragChangeHandler}
         onPresent={(e) => animateButton(e.nativeEvent)}
         onSizeChange={(e) => animateButton(e.nativeEvent)}
@@ -168,3 +175,46 @@ const $subtitle: TextStyle = {
   lineHeight: 24,
   color: GRAY,
 }
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+})

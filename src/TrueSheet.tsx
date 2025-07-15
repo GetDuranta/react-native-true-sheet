@@ -8,6 +8,8 @@ import {
   processColor,
   type ProcessedColorValue,
   requireNativeComponent,
+  ScrollView,
+  Text,
   View,
   type ViewStyle,
 } from 'react-native'
@@ -52,6 +54,7 @@ interface TrueSheetState {
   headerHeight?: number
   footerHeight?: number
   scrollableHandle: number | null
+  sentinelIsVisible: boolean
 }
 
 const TrueSheetNativeView = requireNativeComponent<TrueSheetNativeViewProps>(NATIVE_COMPONENT_NAME)
@@ -82,10 +85,12 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
     this.onDragBegin = this.onDragBegin.bind(this)
     this.onDragChange = this.onDragChange.bind(this)
     this.onDragEnd = this.onDragEnd.bind(this)
+    this.onSentinelSizeChange = this.onSentinelSizeChange.bind(this)
     this.onContentLayout = this.onContentLayout.bind(this)
     this.onHeaderLayout = this.onHeaderLayout.bind(this)
     this.onFooterLayout = this.onFooterLayout.bind(this)
     this.onContainerSizeChange = this.onContainerSizeChange.bind(this)
+    this.onContentSizeChange = this.onContentSizeChange.bind(this)
 
     this.state = {
       containerWidth: undefined,
@@ -94,6 +99,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
       headerHeight: undefined,
       footerHeight: undefined,
       scrollableHandle: null,
+      sentinelIsVisible: false,
     }
   }
 
@@ -165,6 +171,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
   }
 
   private onContainerSizeChange(event: ContainerSizeChangeEvent): void {
+    console.log('Container size change', event.nativeEvent.width, event.nativeEvent.height)
     this.setState({
       containerWidth: event.nativeEvent.width,
       containerHeight: event.nativeEvent.height,
@@ -175,21 +182,38 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
     this.props.onPresent?.(event)
   }
 
+  private onSentinelSizeChange(event: LayoutChangeEvent): void {
+    console.log('Sentinel size', event.nativeEvent.layout.height)
+    this.setState({
+      sentinelIsVisible: event.nativeEvent.layout.height > 0,
+    })
+  }
+
   private onHeaderLayout(event: LayoutChangeEvent): void {
+    console.log('Header height', event.nativeEvent.layout.height)
     this.setState({
       headerHeight: event.nativeEvent.layout.height,
     })
   }
 
   private onFooterLayout(event: LayoutChangeEvent): void {
+    console.log('Footer height', event.nativeEvent.layout.height)
     this.setState({
       footerHeight: event.nativeEvent.layout.height,
     })
   }
 
   private onContentLayout(event: LayoutChangeEvent): void {
+    // console.log('Content height', event.nativeEvent.layout.height)
+    // this.setState({
+    //   contentHeight: event.nativeEvent.layout.height,
+    // })
+  }
+
+  private onContentSizeChange(_: number, h: number) {
+    console.log('Content scroll height', h)
     this.setState({
-      contentHeight: event.nativeEvent.layout.height,
+      contentHeight: h,
     })
   }
 
@@ -313,31 +337,52 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
               // via containerWidth/containerHeight properties. We set them
               // here and let the React layout engine handle the rest.
               width: this.state.containerWidth,
-              height: this.state.containerHeight,
+              //height: this.state.sentinelIsVisible ? undefined : this.state.containerHeight,
+              maxHeight:
+                (this.state.containerHeight ?? 0) <= 1 ? undefined : this.state.containerHeight,
             },
             {
               backgroundColor: Platform.select({ ios: undefined, android: backgroundColor }),
               borderTopLeftRadius: Platform.select({ ios: undefined, android: cornerRadius }),
               borderTopRightRadius: Platform.select({ ios: undefined, android: cornerRadius }),
+              borderWidth: 1,
+              borderColor: 'cyan',
+              paddingLeft: 0,
+              paddingRight: 0,
+              paddingTop: 0,
+              paddingBottom: 0,
             },
             contentContainerStyle,
           ]}
           {...rest}
         >
-          <View collapsable={false} onLayout={this.onHeaderLayout}>
-            <TrueSheetHeader Component={HeaderComponent} />
-          </View>
           <View
             collapsable={false}
+            onLayout={this.onHeaderLayout}
+            style={{ backgroundColor: 'gray' }}
+          >
+            <TrueSheetHeader Component={HeaderComponent} />
+          </View>
+          <ScrollView
+            collapsable={false}
             onLayout={this.onContentLayout}
+            onContentSizeChange={(w: number, h: number) => this.onContentSizeChange(w, h)}
             style={[$growableContent, style]}
           >
             {children}
-          </View>
-          <View collapsable={false} onLayout={this.onFooterLayout}>
+          </ScrollView>
+          <View
+            collapsable={false}
+            style={{ flexShrink: 100000, height: 4000, backgroundColor: 'red', overflow: 'hidden' }}
+            onLayout={this.onSentinelSizeChange}
+          />
+          <View
+            collapsable={false}
+            onLayout={this.onFooterLayout}
+            style={{ backgroundColor: 'green' }}
+          >
             <TrueSheetFooter Component={FooterComponent} />
           </View>
-
           {Platform.OS === 'android' && <TrueSheetGrabber visible={grabber} {...grabberProps} />}
         </View>
       </TrueSheetNativeView>
@@ -354,6 +399,7 @@ const $contentContainer: ViewStyle = {
 const $growableContent: ViewStyle = {
   flexGrow: 1,
   flexShrink: 1,
+  backgroundColor: 'yellow',
 }
 
 const $nativeSheet: ViewStyle = {

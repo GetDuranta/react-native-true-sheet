@@ -14,7 +14,8 @@ export const FlatListSheet = forwardRef((props: FlatListSheetProps, ref: Ref<Tru
     <TrueSheet
       ref={ref}
       cornerRadius={12}
-      sizes={['small', 'medium', 'large']}
+      //      sizes={['small', 'medium', 'large']}
+      sizes={['auto']}
       blurTint="dark"
       backgroundColor={DARK}
       keyboardMode="pan"
@@ -30,7 +31,7 @@ export const FlatListSheet = forwardRef((props: FlatListSheetProps, ref: Ref<Tru
       {...props}
     >
       <FlatList<number>
-        data={times(10, (i) => i)}
+        data={times(20, (i) => i)}
         contentContainerStyle={$content}
         indicatorStyle="black"
         renderItem={() => (

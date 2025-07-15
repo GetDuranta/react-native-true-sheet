@@ -152,11 +152,17 @@ class TrueSheetView(context: Context) :
   private fun updateViewSize() {
     // Recompute the size of the visible area and communicate this back to the
     // React world, so its layout engine can properly position the footer.
-    val rect = sheetDialog.getVisibleContentDimensions()
+    val rect = sheetDialog.getConstraintDimensions()
 
     val data = Arguments.createMap()
     data.putDouble("width", Utils.toDIP(rect.width().toFloat()).toDouble())
-    data.putDouble("height", Utils.toDIP(rect.height().toFloat()).toDouble())
+    if (rootSheetView.pinning || true) {
+      data.putDouble("height", Utils.toDIP(rect.height().toFloat()).toDouble())
+    } else {
+      data.putDouble("height", 0.0);
+    }
+//    data.putDouble("height", 0.0);
+
     dispatchEvent(TrueSheetEvent.CONTAINER_SIZE_CHANGE, data)
   }
 
@@ -317,19 +323,19 @@ class TrueSheetView(context: Context) :
     sizeInfo?.let {
       // Dispatch drag ended after dragging
       dispatchEvent(TrueSheetEvent.DRAG_END, sizeInfoData(it))
-      if (it.index != currentSizeIndex) {
-        // Invoke promise when sheet resized programmatically
-        presentPromise?.let { promise ->
-          promise()
-          presentPromise = null
-        }
-
-        currentSizeIndex = it.index
-        sheetDialog.setupDimmedBackground(it.index)
-
-        // Dispatch onSizeChange event
-        dispatchEvent(TrueSheetEvent.SIZE_CHANGE, sizeInfoData(it))
-      }
+//      if (it.index != currentSizeIndex) {
+//        // Invoke promise when sheet resized programmatically
+//        presentPromise?.let { promise ->
+//          promise()
+//          presentPromise = null
+//        }
+//
+//        currentSizeIndex = it.index
+//        sheetDialog.setupDimmedBackground(it.index)
+//
+//        // Dispatch onSizeChange event
+//        dispatchEvent(TrueSheetEvent.SIZE_CHANGE, sizeInfoData(it))
+//      }
     }
 
     isDragging = false
@@ -342,6 +348,7 @@ class TrueSheetView(context: Context) :
   fun configureIfShowing() {
     if (sheetDialog.isShowing) {
       sheetDialog.configure()
+      updateViewSize()
     }
   }
 
